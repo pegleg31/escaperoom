@@ -1049,6 +1049,8 @@ const App={
   boardReset(){ if(!confirm("Start fresh? This relocks phases 2–5 and clears this crew's board for the current topic.")) return;
     S.boardPhase=0; S.unlockedUpTo=REQUIRE_WORDS?0:PHASE_META.length-1; S.roomPhase=0;
     S.boards[S.pack]=defaultBoard(pack());
+    /* a fresh start also drops any stale timing this device remembered from an earlier session */
+    S.timing=[40,50,75].includes(+params.get("t")) ? +params.get("t") : DEFAULT_TIMING;
     S.boardT={remaining:phases()[0].mins*60,running:false}; save(); render(); },
   stageReset(){ if(!confirm("New session? This clears all crews and scores and returns to Phase 1.")) return;
     S.phase=0; S.wordRevealed=false; S.ceiling=false; S.taunt=""; S.teams=[]; S.selected=0;
