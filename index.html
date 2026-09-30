@@ -474,22 +474,28 @@ function defaultBoard(p){
     leads:[{t:"",src:"Crew"},{t:"",src:"Crew"},{t:"",src:"Crew"}],
     subs:{}, reflections:["","","",""], verifyLine:"", stemLine:"" };
 }
+const DEFAULT_TIMING = 40; /* what a device gets with no saved state and no ?t= — matches the current session so a typed short URL still lands on the right clock */
 let S = {
-  mode:null, pack:"penmen", timing:75,
+  mode:null, pack:"penmen", timing:DEFAULT_TIMING,
   phase:0, wordRevealed:false, ceiling:false,
   boardPhase:0, unlockedUpTo:0, roomPhase:0,
-  stageT:{remaining:12*60, running:false},
-  boardT:{remaining:12*60, running:false},
+  stageT:{remaining:0, running:false},
+  boardT:{remaining:0, running:false},
   boards:{}, teams:[], selected:0, taunt:""
 };
+let hadSaved=false;
 try{ const saved = JSON.parse(localStorage.getItem(STORE_KEY)||"null");
-  if(saved){ S = Object.assign(S, saved); S.stageT.running=false; S.boardT.running=false; } }catch(e){}
+  if(saved){ hadSaved=true; S = Object.assign(S, saved); S.stageT.running=false; S.boardT.running=false; } }catch(e){}
 if(params.get("topic") && PACKS[params.get("topic")]) S.pack = params.get("topic");
 if(params.get("view")==="stage") S.mode="stage";
 if(params.get("view")==="board") S.mode="board";
-/* ?t=40|50|75 — the stage bakes its timing into the join link so crew clocks match the room clock */
-if([40,50,75].includes(+params.get("t"))) S.timing=+params.get("t");
 if(!PACKS[S.pack]) S.pack="penmen";
+/* ?t=40|50|75 — the stage bakes its timing into the join link so crew clocks match the room clock.
+   A changed timing (or a first load) must also reset the countdowns, or the clock keeps the old length until the next phase. */
+{ const tParam=+params.get("t"), tChanged=[40,50,75].includes(tParam) && tParam!==S.timing;
+  if(tChanged) S.timing=tParam;
+  if(tChanged || !hadSaved || !S.boardT.remaining) S.boardT={remaining:phases()[S.boardPhase].mins*60, running:false};
+  if(tChanged || !hadSaved || !S.stageT.remaining) S.stageT={remaining:phases()[S.phase].mins*60, running:false}; }
 let wordInput="", wordError=false;
 
 function pack(){ return PACKS[S.pack]; }
@@ -517,7 +523,8 @@ const bc = ("BroadcastChannel" in window) ? new BroadcastChannel("snhu-heist-roo
 if(bc) bc.onmessage = (e)=>{ if(e.data && typeof e.data.phase==="number"){
   S.roomPhase=e.data.phase;
   if(e.data.pack && PACKS[e.data.pack] && S.mode!=="stage") S.pack=e.data.pack; /* boards follow the stage's topic */
-  if([40,50,75].includes(e.data.timing) && S.mode!=="stage") S.timing=e.data.timing; /* …and its timing */
+  if([40,50,75].includes(e.data.timing) && S.mode!=="stage" && e.data.timing!==S.timing){ /* …and its timing */
+    S.timing=e.data.timing; S.boardT={remaining:phases()[S.boardPhase].mins*60, running:S.boardT.running}; }
   save(); if(S.mode==="board") render(); } };
 function broadcast(){ if(bc) bc.postMessage({phase:S.phase, pack:S.pack, timing:S.timing}); }
 
