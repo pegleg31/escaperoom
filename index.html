@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Penmen Heist · SNHU AI Labs</title>
 <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<!-- QR for the join link on the projector. Optional: if this can't load, the stage shows the typed link instead. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <style>
 :root{
   --ink-blue:#00244e; --gold:#fdb913; --heritage:#0a3370; --sky-blue:#009dea;
@@ -92,7 +94,9 @@ textarea.field{resize:vertical;min-height:56px}
 .st-word{background:var(--gold);color:var(--ink-blue);font-size:26px;font-weight:800;letter-spacing:.12em;padding:11px 24px;border-radius:var(--radius)}
 .st-hint{font-size:15px;color:var(--dim-on-navy)}
 .join-panel{background:var(--white);color:var(--warm-black);border-radius:var(--radius);padding:18px 20px;display:flex;gap:18px;align-items:center;max-width:560px}
-.qr-slot{width:88px;height:88px;border:2px dashed var(--line);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--placeholder);text-align:center;flex:none}
+.qr-slot{width:168px;height:168px;border:2px dashed var(--line);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--placeholder);text-align:center;flex:none;padding:6px}
+.qr-slot.has-qr{border:1px solid var(--line);background:#fff}
+.qr-slot.has-qr svg{width:100%;height:100%;display:block}
 .st-foot{border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18);padding:20px 34px;display:flex;flex-direction:column;gap:14px;flex:none}
 .st-foot-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 .st-foot-head .lab{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
@@ -617,6 +621,9 @@ function stageHero(i){
 function renderStage(){
   const p=pack(), ph=phases(), i=S.phase, cur=ph[i], t=S.stageT;
   const joinLink = JOIN_URL+"?view=board&topic="+S.pack+"&t="+S.timing;
+  /* QR is rebuilt from the live join link on every render, so it always matches the topic + timing shown. */
+  let qrSvg="";
+  if(i===0 && window.qrcode){ try{ const q=qrcode(0,"M"); q.addData(joinLink); q.make(); qrSvg=q.createSvgTag({cellSize:4,margin:0,scalable:true}); }catch(e){ qrSvg=""; } }
   const total=cur.mins*60, pct=Math.min(100,Math.round(((total-t.remaining)/total)*100));
   let H=stageHero(i);
   if(S.taunt) H={eyebrow:"Thief transmission · live", hero:"“"+S.taunt+"”", inc:true, hint:"The thief is watching. Back to work."};
@@ -667,9 +674,10 @@ function renderStage(){
             :`<button class="btn btn-gold" style="padding:12px 20px;font-size:15px" onclick="App.reveal()">Reveal the unlock word</button>`):""}
           <span class="st-hint">${esc(H.hint)}</span>
         </div>
-        ${H.join?`<div class="join-panel"><div class="qr-slot">QR<br>slot</div>
+        ${H.join?`<div class="join-panel">${qrSvg?`<div class="qr-slot has-qr">${qrSvg}</div>`:`<div class="qr-slot">Scan code unavailable —<br>type the link</div>`}
           <div style="min-width:0">
             <div style="font-size:15px;font-weight:800;color:var(--ink-blue);margin-bottom:4px">Crews join here</div>
+            <div style="font-size:12.5px;color:var(--muted);margin-bottom:6px">Scan the code, or type:</div>
             <div class="mono" style="font-size:13.5px;word-break:break-all;color:var(--impact-blue)">${esc(joinLink)}</div>
           </div></div>`:""}
       </div>
