@@ -835,7 +835,7 @@ function renderBoard(){
       <input value="${esc(subState.answer||"")}" oninput="App.subAnswer(this.value)" placeholder="${esc(sub.ph)}">
       <button class="btn btn-gold" onclick="App.subSend()">${subState.submitted?"Update the call":sub.cta}</button>
       <div class="submit-note">${subState.submitted
-        ?`Locked with <b>${esc(subState.lockedAt||"—")}</b> on the clock — Runner, call it in to HQ, out loud. The lock time is your proof if two crews call it close.`
+        ?`Locked at <b>${esc(subState.lockedAt||"—")}</b> — Runner, call it in to HQ, out loud. The lock time is your proof if two crews call it close.`
         :"Locking stamps your answer with the clock time — your proof if two crews call it close. Then the Runner calls it in to HQ, out loud."}</div>
     </div>` : "";
   const hqRow = (submitCard||unlockCard) ? `<div class="hq-row">${submitCard}${unlockCard}</div>` : "";
@@ -848,7 +848,10 @@ function renderBoard(){
           <span class="wb-title">${esc(p.sessionLabel)}</span></div>
       </div>
       <div style="display:flex;align-items:center;gap:20px;min-width:0">
-        <div class="wb-clock tnum js-clock ${t.remaining<60?"danger":""}">${fmt(t.remaining)}</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:none">
+          <div class="wb-clock tnum js-clock ${t.remaining<60?"danger":""}">${fmt(t.remaining)}</div>
+          <span style="font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim-on-navy);white-space:nowrap">Projector clock is official</span>
+        </div>
         <div style="display:flex;flex-direction:column;gap:7px;flex:1;min-width:0">
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px">
             <span style="font-size:16px;font-weight:800">Phase ${i+1} — ${esc(cur.name)}</span>
@@ -1057,7 +1060,8 @@ const App={
     if(next>=PHASE_META.length) return;
     if(wordInput.trim().toUpperCase()===PHASE_META[next].word){
       S.unlockedUpTo=next; S.boardPhase=next; wordInput=""; wordError=false;
-      S.boardT={remaining:phases()[next].mins*60,running:false}; save(); render();
+      /* auto-start: the crew types the word seconds after the room hears it, so this tracks the projector closely */
+      S.boardT={remaining:phases()[next].mins*60,running:true}; save(); render();
     } else { wordError=true; render(); } },
   boardGo(i){ if(i<=S.unlockedUpTo){ S.boardPhase=i; S.boardT={remaining:phases()[i].mins*60,running:false}; save(); render(); } },
   susSet(i,v){ board().suspects[i]=v; save(); render(); },
@@ -1067,7 +1071,8 @@ const App={
   leadAdd(){ board().leads.push({t:"",src:"Crew"}); save(); render(); },
   subAnswer(v){ const b=board(); b.subs[S.boardPhase]=Object.assign(b.subs[S.boardPhase]||{},{answer:v}); save(); },
   subSend(){ const b=board(); const s=b.subs[S.boardPhase]=b.subs[S.boardPhase]||{};
-    s.submitted=true; s.lockedAt=fmt(S.boardT.remaining); save(); render(); },
+    /* wall-clock stamp — comparable across crews' devices, unlike each board's own countdown */
+    s.submitted=true; s.lockedAt=new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit",second:"2-digit"}); save(); render(); },
   refl(i,v){ board().reflections[i]=v; save(); },
   verify(v){ board().verifyLine=v; save(); },
   stem(v){ board().stemLine=v; save(); },
