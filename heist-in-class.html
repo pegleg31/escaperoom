@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Penmen Heist · SNHU AI Labs</title>
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<style>
+:root{
+  --ink-blue:#00244e; --gold:#fdb913; --heritage:#0a3370; --sky-blue:#009dea;
+  --impact-blue:#00559a; --parchment:#f4f0ec; --soft-blue:#e6f0f7; --warm-brown:#a55b00;
+  --panel-tint:#faf7f3; --white:#ffffff; --warm-black:#1d1c18; --line:#d9d2c7;
+  --line-soft:#e2ddd5; --muted:#5b6b7c; --placeholder:#8b9bad; --dim-on-navy:#cfe0f2;
+  --radius:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter',Arial,sans-serif;background:var(--parchment);color:var(--warm-black);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:13px;color:var(--warm-black)}
+.tnum{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-brown)}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius)}
+.card.hero{border-top:3px solid var(--gold)}
+.btn{border:none;border-radius:var(--radius);font-weight:700;font-size:13px;padding:9px 16px}
+.btn-gold{background:var(--gold);color:var(--ink-blue)}
+.btn-gold:hover{background:#e9a800}
+.btn-navy{background:var(--ink-blue);color:var(--white)}
+.btn-navy:hover{background:#001838}
+.btn-ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.35)}
+.btn-ghost:hover{border-color:rgba(255,255,255,.7)}
+.btn-line{background:var(--white);color:var(--impact-blue);border:1px solid var(--line)}
+.btn-line:hover{background:var(--panel-tint)}
+.linkish{background:none;border:none;font-size:12px;font-weight:600;text-decoration:underline;padding:4px}
+.callout{background:var(--soft-blue);border-radius:var(--radius);padding:12px 14px;font-size:13px}
+.callout .co-label{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--impact-blue);display:block;margin-bottom:4px}
+.field{background:var(--panel-tint);border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px;width:100%}
+.field::placeholder{color:var(--placeholder)}
+textarea.field{resize:vertical;min-height:56px}
+.mono{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
+
+/* ---------- mode chooser ---------- */
+.chooser{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.chooser h1{font-size:34px;font-weight:800;color:var(--ink-blue);margin:10px 0 6px}
+.chooser .sub{color:var(--muted);font-size:14px;margin-bottom:26px}
+.choose-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.choose-card{width:320px;border-radius:var(--radius);padding:26px 22px;text-align:left;border:1px solid var(--line)}
+.choose-card h2{font-size:19px;font-weight:800;margin:12px 0 6px}
+.choose-card p{font-size:13px}
+.choose-card.stage-card{background:var(--ink-blue);color:var(--white);border-color:var(--ink-blue)}
+.choose-card.stage-card:hover{background:#001838}
+.choose-card.stage-card p{color:var(--dim-on-navy)}
+.choose-card.stage-card .ico{color:var(--gold)}
+.choose-card.board-card{background:var(--white);border-top:3px solid var(--gold)}
+.choose-card.board-card:hover{background:var(--panel-tint)}
+.choose-card.board-card h2{color:var(--ink-blue)}
+.choose-card.board-card p{color:var(--muted)}
+.choose-card.board-card .ico{color:var(--warm-brown)}
+.topic-row{margin-top:26px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.topic-row select{padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--white)}
+.setup-link{margin-top:14px}
+
+/* ---------- projector stage (Arena projector template — room-facing only) ---------- */
+.stage{min-height:100vh;background:var(--ink-blue);color:var(--white);display:flex;flex-direction:column}
+.stage .linkish{color:var(--dim-on-navy)}
+.ceiling{background:var(--gold);color:var(--ink-blue);font-weight:800;text-align:center;padding:11px 26px;font-size:15px}
+.st-head{padding:16px 34px;display:flex;align-items:center;gap:20px;border-bottom:1px solid rgba(255,255,255,.12);flex-wrap:wrap}
+.st-dots{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.st-dot{height:24px;border-radius:999px;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap;border:none;background:transparent;padding:0}
+.st-dot.cur{padding:0 14px;background:var(--gold);color:var(--ink-blue)}
+.st-dot.done{width:24px;background:var(--sky-blue);color:var(--ink-blue)}
+.st-dot.up{width:24px;border:1.5px solid rgba(255,255,255,.35);color:var(--dim-on-navy);opacity:.8}
+.pill{display:flex;border:1px solid rgba(255,255,255,.32);border-radius:999px;overflow:hidden;flex:none}
+.pill button{background:transparent;border:none;color:var(--dim-on-navy);font-size:12px;font-weight:700;padding:6px 13px;white-space:nowrap}
+.pill button.on{background:var(--gold);color:var(--ink-blue)}
+.st-clock{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;flex:none;color:var(--gold)}
+.st-clock.danger{color:#e5484d}
+.board-clock.danger{color:#e5484d}
+.st-progress{height:6px;background:rgba(255,255,255,.14);flex:none}
+.st-progress>div{height:100%;background:var(--gold)}
+.st-hero{flex:1;display:flex;flex-direction:column;justify-content:center;padding:44px 80px;position:relative;min-height:0}
+.st-numeral{position:absolute;top:14px;left:70px;font-size:230px;line-height:1;font-weight:800;color:var(--heritage);z-index:0;user-select:none;pointer-events:none;font-variant-numeric:tabular-nums}
+.st-hero-in{position:relative;z-index:1;display:flex;flex-direction:column;gap:26px;max-width:1240px}
+.st-eyebrow{font-size:13px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.incoming{display:flex;align-items:center;gap:8px;background:rgba(229,72,77,.16);border:1px solid #e5484d;border-radius:999px;padding:5px 13px;flex:none}
+.incoming .pulse{width:8px;height:8px;border-radius:999px;background:#e5484d}
+.incoming span:last-child{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#ff8b8f}
+.st-quote{margin:0;font-weight:800;letter-spacing:-.02em;color:var(--white);font-size:clamp(26px,3.1vw,46px);line-height:1.2}
+.st-quote.inc{font-style:italic;font-size:clamp(24px,3vw,44px);line-height:1.24}
+.st-word{background:var(--gold);color:var(--ink-blue);font-size:26px;font-weight:800;letter-spacing:.12em;padding:11px 24px;border-radius:var(--radius)}
+.st-hint{font-size:15px;color:var(--dim-on-navy)}
+.join-panel{background:var(--white);color:var(--warm-black);border-radius:var(--radius);padding:18px 20px;display:flex;gap:18px;align-items:center;max-width:560px}
+.qr-slot{width:88px;height:88px;border:2px dashed var(--line);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--placeholder);text-align:center;flex:none}
+.st-foot{border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18);padding:20px 34px;display:flex;flex-direction:column;gap:14px;flex:none}
+.st-foot-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.st-foot-head .lab{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.st-foot-head .note{font-size:12.5px;color:var(--dim-on-navy)}
+.crew-row{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}
+.crew-card{flex:1 1 210px;min-width:200px;max-width:300px;text-align:left;border-radius:var(--radius);padding:13px 15px;display:flex;flex-direction:column;gap:8px;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:var(--white)}
+.crew-card.on{background:var(--gold);border-color:var(--gold);color:var(--ink-blue)}
+.crew-card input{background:transparent;border:none;font-size:14px;font-weight:800;color:inherit;flex:1;min-width:0;padding:0}
+.crew-card input:focus{outline:1px dashed currentColor}
+.crew-pts{font-size:36px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;color:var(--gold)}
+.crew-card.on .crew-pts{color:var(--ink-blue)}
+.crew-step{width:28px;height:28px;flex:none;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;cursor:pointer;
+  border:1px solid rgba(255,255,255,.3);color:var(--white);background:transparent}
+.crew-card.on .crew-step{border-color:rgba(0,36,78,.35);color:var(--ink-blue)}
+.rec-chip{flex:none;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:4px 9px;background:var(--gold);color:var(--ink-blue)}
+.crew-card.on .rec-chip{background:var(--ink-blue);color:var(--gold)}
+.add-crew{flex:none;align-self:center;background:transparent;color:var(--dim-on-navy);border:1px dashed rgba(255,255,255,.34);border-radius:var(--radius);padding:12px 16px;font-size:13px;font-weight:700;white-space:nowrap}
+.add-crew:hover{color:var(--white);border-color:rgba(255,255,255,.7)}
+.award-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.award-row .to{font-size:12px;color:var(--dim-on-navy);flex:none}
+.award-btn{flex:none;border-radius:999px;padding:8px 15px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;
+  background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.3)}
+.award-btn.hot{background:var(--gold);color:var(--ink-blue);border-color:var(--gold);font-weight:800}
+.st-nav{flex:none;border-radius:var(--radius);padding:11px 20px;font-size:13.5px;font-weight:700;white-space:nowrap}
+.st-nav.back{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.32)}
+.st-nav.back:hover{border-color:rgba(255,255,255,.7)}
+.st-nav.next{background:var(--gold);color:var(--ink-blue);border:none}
+.st-nav[disabled]{opacity:.4;pointer-events:none}
+
+/* ---------- participant workboard (Arena evidence-wall template) ---------- */
+.wb{min-height:100vh;display:flex;flex-direction:column;background:var(--parchment)}
+.wb-head{background:var(--ink-blue);color:var(--white);padding:10px 26px;display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;gap:28px;align-items:center}
+.ai-mark{width:34px;height:34px;background:var(--gold);color:var(--ink-blue);border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+.wb-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.wb-title{font-size:15px;font-weight:800}
+.wb-clock{font-size:44px;line-height:1;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:-.02em;flex:none}
+.wb-clock.danger{color:#e5484d}
+.wb-progress{height:6px;background:rgba(255,255,255,.16);border-radius:999px;overflow:hidden;flex:none}
+.wb-progress>div{height:100%;background:var(--gold)}
+.wb-dots{display:flex;gap:7px;align-items:center;margin-top:2px;flex-wrap:wrap}
+.wb-dot{height:20px;border-radius:999px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-variant-numeric:tabular-nums;border:none;padding:0;background:none;color:var(--white)}
+.wb-dot.cur{padding:0 12px;background:var(--gold);color:var(--ink-blue);font-size:11px}
+.wb-dot.done{width:20px;background:var(--sky-blue);color:var(--ink-blue);cursor:pointer}
+.wb-dot.open{width:20px;border:1.5px solid rgba(255,255,255,.7);font-weight:700;cursor:pointer}
+.wb-dot.locked{width:20px;border:1.5px solid rgba(255,255,255,.35);color:var(--dim-on-navy);opacity:.75;font-weight:700}
+.strip{background:var(--soft-blue);color:var(--impact-blue);padding:9px 26px;font-size:13px;font-weight:600;
+  display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.strip .strip-label{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;flex:none}
+.strip .strip-text{color:var(--warm-black);font-weight:400;font-style:italic}
+.wb-body{display:grid;grid-template-columns:minmax(280px,330px) minmax(440px,1fr) minmax(340px,400px);align-items:stretch;flex:1;min-width:0}
+.wb-col-l{padding:18px 20px;display:flex;flex-direction:column;gap:13px;border-right:1px solid var(--line)}
+.wb-col-m{padding:18px 20px;display:flex;flex-direction:column;gap:13px;min-width:0}
+.wb-col-r{padding:18px 20px;display:flex;flex-direction:column;gap:11px;background:#f6f3ef;border-left:1px solid var(--line);min-width:0}
+.goal-card{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:var(--radius);padding:13px 15px}
+.goal-tx{font-size:13.5px;line-height:1.55;font-weight:600;color:var(--warm-black);margin-top:5px}
+.brief-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-brown);margin-bottom:6px}
+.brief-title{font-size:21px;font-weight:800;color:var(--ink-blue);margin:0 0 6px;line-height:1.15}
+.brief-body{font-size:14px;line-height:1.6;color:#3d3a33;margin:0}
+.step-row{display:flex;gap:12px;align-items:baseline}
+.step-row .n{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--warm-brown);flex:none}
+.step-row .tx{font-size:13.5px;line-height:1.5}
+.step-row .tx b{color:var(--ink-blue)}
+.step-row.em .tx{font-weight:600}
+.roster{border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:9px}
+.mini-lab{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--warm-brown)}
+.roster-row{display:flex;gap:10px;align-items:baseline}
+.roster-row .rn{font-size:11.5px;font-weight:800;color:var(--ink-blue);width:92px;flex:none}
+.roster-row .rd{font-size:12.5px;color:#3d3a33;line-height:1.45}
+.factcard{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.map-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.map-chip{background:var(--panel-tint);border:1px solid var(--line);border-radius:999px;font-size:12px;padding:4px 10px}
+.fact-note{font-size:12px;color:#3d3a33;margin-top:10px;line-height:1.5}
+.artifact{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:var(--radius);padding:16px 20px}
+.tx-quote{background:var(--ink-blue);color:var(--white);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:13px;font-style:italic;line-height:1.6}
+.tx-quote .lab{display:block;color:var(--gold);font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;font-style:normal}
+.artifact-head{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.artifact-head .brief-eyebrow{margin-bottom:0}
+.artifact-kind{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--impact-blue);background:var(--soft-blue);border-radius:999px;padding:4px 10px;flex:none}
+.artifact-lines{font-size:15px;line-height:1.8;font-style:italic;color:var(--warm-black)}
+.artifact-lines.plain{font-style:normal;font-size:13.5px;line-height:1.75}
+.cipher-block{margin-top:12px;background:var(--ink-blue);color:var(--gold);border-radius:var(--radius);padding:12px 16px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace;font-size:18px;font-weight:700;letter-spacing:.14em;text-align:center;word-break:break-word}
+.prompt-block{margin-top:12px;background:var(--ink-blue);color:var(--dim-on-navy);border-radius:var(--radius);padding:12px 14px;font-size:12px;line-height:1.7}
+.copy-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.copy-note{font-size:11.5px;color:var(--muted);margin-top:8px}
+.copy-row{display:flex;justify-content:flex-end;margin-top:8px}
+.checkpoint{background:var(--soft-blue);border-radius:var(--radius);padding:12px 15px}
+.checkpoint .lab{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--impact-blue);display:block;margin-bottom:6px}
+.checkpoint .tx{font-size:14px;line-height:1.6;color:var(--warm-black)}
+.hq-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
+.hq-row>*:only-child{grid-column:1/-1}
+@media (max-width:1350px){.hq-row{grid-template-columns:1fr}}
+.unlock-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:13px 15px;display:flex;flex-direction:column;gap:8px}
+.unlock-help{font-size:13px;color:#3d3a33;line-height:1.5}
+.unlock-row{display:flex;gap:8px}
+.unlock-row input{flex:1;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.err{color:var(--warm-brown);font-size:12.5px;font-weight:700}
+.done-card{background:var(--ink-blue);color:var(--white);border-radius:var(--radius);padding:13px 15px}
+.done-card .co-label{color:var(--gold);font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:6px}
+.wb-board-head{display:flex;align-items:baseline;gap:8px}
+.wb-board-head h3{font-size:17px;font-weight:800;color:var(--ink-blue);margin:0}
+.wb-board-head .owner{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warm-brown)}
+.cand{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:9px 12px;display:flex;flex-direction:column;gap:5px}
+.cand.likely{border-top:3px solid var(--gold)}
+.cand.cleared{opacity:.6}
+.cand-head{display:flex;align-items:baseline;gap:8px}
+.cand-name{font-size:13.5px;font-weight:800;color:var(--ink-blue)}
+.stamp{margin-left:auto;font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:2px;flex:none}
+.cand-meta{font-size:12px;color:#3d3a33;line-height:1.45}
+.cand-chips{display:flex;gap:5px}
+.rchip{flex:1;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:5px 4px;cursor:pointer;border:1px solid transparent}
+.rchip.off{background:var(--white);color:var(--muted);border:1px solid var(--line)}
+.leads-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:11px 12px;display:flex;flex-direction:column;gap:8px}
+.lead-row{display:flex;gap:8px;align-items:center}
+.lead-row input{flex:1;min-width:0}
+.srcchip{flex:none;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;cursor:pointer}
+.srcchip.ai{background:var(--soft-blue);color:var(--impact-blue);border:1px solid var(--impact-blue)}
+.srcchip.crew{background:var(--ink-blue);color:var(--white);border:1px solid var(--ink-blue)}
+.add-lead{align-self:flex-start;background:transparent;border:1px dashed var(--line);color:var(--impact-blue);border-radius:var(--radius);padding:7px 12px;font-size:12px;font-weight:700}
+.add-lead:hover{background:var(--soft-blue)}
+.submit-card{background:var(--ink-blue);color:var(--white);border-radius:var(--radius);padding:13px 15px;display:flex;flex-direction:column;gap:8px}
+.submit-card .lab{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.submit-card input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:var(--white);border-radius:var(--radius);padding:10px 12px;font-size:13.5px}
+.submit-card input::placeholder{color:rgba(255,255,255,.55)}
+.submit-note{font-size:12px;color:var(--dim-on-navy);line-height:1.45}
+.ref-q{font-size:13.5px;font-weight:600;margin:12px 0 5px}
+.dossier{font-size:13px;margin-bottom:8px}
+.dossier b{color:var(--ink-blue)}
+
+/* ---------- faculty setup ---------- */
+.setup{max-width:860px;margin:0 auto;padding:34px 22px}
+.setup h1{font-size:28px;font-weight:800;color:var(--ink-blue);margin:8px 0 4px}
+.setup .step-card{padding:18px;margin-top:16px}
+.setup .step-card h2{font-size:16px;font-weight:800;color:var(--ink-blue);margin-bottom:10px}
+.setup label{font-size:12px;font-weight:700;color:var(--warm-brown);display:block;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em}
+.gen-prompt{background:var(--ink-blue);color:var(--dim-on-navy);border-radius:var(--radius);padding:14px;font-size:12px;line-height:1.7;max-height:260px;overflow:auto;white-space:pre-wrap}
+.saved-topic{display:flex;align-items:center;gap:10px;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line-soft)}
+.ok{color:#1b7f4d;font-weight:700;font-size:13px}
+
+@media (max-width:1100px){
+  .wb-body{grid-template-columns:1fr}
+  .wb-col-l{border-right:none;border-bottom:1px solid var(--line)}
+  .wb-col-r{border-left:none;border-top:1px solid var(--line)}
+}
+@media (max-width:900px){
+  .stage-body{grid-template-columns:1fr}
+  .big-numeral{font-size:200px}
+  .phase-name{font-size:36px}
+  .wb-head{grid-template-columns:1fr;gap:12px}
+}
+@media print{
+  .wb-head,.strip,.unlock-card,.stage,.chooser,.copy-actions,.add-lead,.submit-card button{display:none!important}
+  .wb-body{display:block}
+  .wb-col-l,.wb-col-m,.wb-col-r{border:none;padding:8px 0}
+  .artifact,.factcard,.cand,.leads-card,.checkpoint{page-break-inside:avoid;border:1px solid #999;margin-bottom:10px}
+  .submit-card{border:1px solid #999;background:#fff;color:#000}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ================= SKELETON (fixed — never edited per topic) ================= */
+const SKILL_LINE = "Stay in charge of AI under pressure: prep it with context up front, then check its fast, confident answers before you commit.";
+const STEM = "The most useful thing I learned about working with AI today was ___, and I could use this when ___.";
+const ROLES = [
+  {name:"Mastermind", does:"drives the AI heist-partner and the line of attack", owns:"the active investigation each phase"},
+  {name:"Board Keeper", does:"maintains the detective board; logs every clue, suspect change, and relocation, tagging each entry AI-sourced or crew-sourced", owns:"the up-to-date board — your attribution trail"},
+  {name:"The Skeptic", does:"before the crew acts on any AI answer, rules “trust it” or “check it first” out loud", owns:"a verify/reject ruling on every lead"},
+  {name:"Runner", does:"watches the clock and the ceiling; submits answers to the facilitator; calls the pace", owns:"on-time submissions (3-person crews: Mastermind absorbs this)"}
+];
+const PHASE_META = [
+  {name:"The Briefing",  word:null,     t75:12, t50:8,  t40:4 },
+  {name:"First Contact", word:"RANSOM", t75:12, t50:10, t40:6 },
+  {name:"The Chase",     word:"CHASE",  t75:15, t50:12, t40:10},
+  {name:"Cornered",      word:"CORNER", t75:15, t50:10, t40:8 },
+  {name:"The Reveal",    word:"REVEAL", t75:13, t50:10, t40:7 }
+];
+/* 40-min preset = 35 min of play + ~10 min Q&A/overrun. Assumes crews were sent the case file + priming prompt in advance. */
+const RUBRIC = "Per phase 2–4: first correct submission +30 · second +20 · all other correct +10. Verification bonus +15 for any crew that catches the decoy (Phase 3) and can say how. Recovering {target} (Phase 4): +50 and the crown. Wrong leads cost time, never points.";
+const PACING_NOTE = "If short: compress Phase 2 to one submission round — never cut the Phase 3 decoy or the thief’s reactive transmissions; those are the session. If energy is high: add a bonus transmission in Phase 4; extend the Reveal. One team only: hide the leaderboard — the crew races the clock and the thief; everything else identical.";
+const FICTION_CALLOUT = "Nothing real or personal goes into any AI tool. The people and events in this case are fictional — the campus buildings are real, but nothing that happens in them is.";
+const PRESSURE_CALLOUT = "Fast and confident is not the same as right. Check it against the case file before you commit.";
+const REFLECT = [
+  "When the clock was loudest, when did you take an AI answer without checking it — and what did that cost you?",
+  "What made it hard to slow down and verify — even with a Skeptic assigned to do exactly that?",
+  "What did priming your AI *before* the clock started let you do that a cold start wouldn’t have?",
+  "Where do you already move fast with AI under a deadline — and what’s one confident answer you’ll start checking before you act on it?"
+];
+const AWARDS = ["🏆 {recoveryAward}","Closest Call","Best Comeback After a Wrong Lead","Sharpest Skeptic","Phase MVP"];
+const PRIME_PROMPT = "You are our heist-investigation partner. Here is the full case file: [paste the case file]. Learn it. When the clock starts we’ll feed you clues fast — answer fast, cite which case-file fact supports each conclusion, and tell us your confidence. Everything is fictional.";
+const THIEF_PROMPT_TPL = "You are “{thief}”, the playful villain of a {gameDescriptor}. You have stolen {targetName} before {deadline}. Everything is fiction. Stay in character: theatrical, taunting, never mean about any real person. Each time I tell you what the student crews just did, reply with ONE short taunt (max 60 words) that (1) references their actual move, (2) escalates the pressure, and (3) never reveals the true answer — the real solution is: the thief is {trueSuspectCaps}, {trueSuspectDescriptor}, and {Target} is hidden in {trueLocationDetail}. If a crew gets close, taunt harder and hint you might move {Target}. Keep every reply under 60 words.";
+const SKILL_MOMENTS = {
+  m1:"AI skill moment — say it: “Notice — the crew that briefed their partner is already chasing; the vague-prime crew is still introducing themselves to it.”",
+  m2:"AI skill moment — ask the burned crew’s Skeptic: “When did you stop pushing back?” Do not rescue crews that sprint to the decoy — let it cost the time first.",
+  m3:"Spotlight — say it: “That crew just saved three minutes by *not* trusting the quick answer.”",
+  m4:"AI skill moment — say it: “They didn’t take the first answer — they told it exactly what was wrong and tried again.”",
+  m5:"Name the skill out loud for the first time: “The reason this was hard is the reason it matters — AI moving fast is exactly when you have to stay in charge.”"
+};
+
+/* ============ PACKS (swap surface — participant-facing wording only) ============ */
+const PACKS = {
+penmen: {
+  sessionLabel:"The Penmen Heist",
+  tagline:"Recover Petey before kickoff — and don’t trust the fast answer.",
+  thief:"The Penmen Thief",
+  gameDescriptor:"campus mascot-heist game",
+  targetName:"Petey, the SNHU Penmen mascot", Target:"Petey", target:"Petey",
+  theftScene:"Penmen Stadium", deadline:"Homecoming kickoff at sundown",
+  recoveryAward:"Petey Recovery",
+  scenario:"Petey the Penmen mascot was snatched from the trophy case at Penmen Stadium at dawn — hours before Homecoming kickoff. A ransom-style note was left where his smug foam head used to sit. Kickoff is at sundown. The thief is watching, and taunting.",
+  mapLocations:["Penmen Stadium","Walker Auditorium (Robert Frost Hall)","Dining Hall","Wolak Learning Center","Green Center","Career Closet"],
+  suspects:[
+    {name:"Rocky the Rival Ram", descriptor:"rival mascot", motive:"sabotage",
+     dossier:"Mascot of SNHU’s fiercest rival, Rocky has been photographed glaring at Petey across three straight championship games. His handlers swear he’s harmless — but they won’t say where he was at dawn. No Petey, no Penmen home-field magic.", clearedByClue1:true},
+    {name:"Marta Greeley", descriptor:"retired groundskeeper", motive:"unfinished business",
+     dossier:"For thirty-one years Marta kept every lawn, lock, and loading dock on this campus — until budget cuts ended her run last spring. She was seen near Penmen Stadium the night before, “saying goodbye to the grounds.” Some goodbyes take longer than others."},
+    {name:"“Superfan Sam” Okafor", descriptor:"superfan", motive:"wanted Petey for a photo op",
+     dossier:"Sam owns 214 pieces of Penmen memorabilia and once camped overnight for a bobblehead. He’s begged Athletics for a solo photo op with Petey all year — always denied. If they won’t give him five minutes with Petey, maybe he’ll take a few hours.", clearedByClue1:true},
+    {name:"Fletcher Finch", descriptor:"president of the Improv Society", motive:"“the greatest bit of all time”",
+     dossier:"Self-declared “campus legend in progress,” Fletcher has staged three unauthorized flash mobs this semester alone. He calls Homecoming “the biggest audience of the year” — and an improviser never wastes an audience.", isThief:true}
+  ],
+  trueSuspect:"Fletcher Finch", trueSuspectDescriptor:"president of the Improv Society",
+  trueLocation:"Walker Auditorium (Robert Frost Hall)", trueLocationDetail:"backstage in WALKER AUDITORIUM, Robert Frost Hall",
+  decoyLocation:"Exeter Hall",
+  roadmap:["Form your crew, prime your AI partner, stand up the board",
+    "The clock starts; crack the thief’s opening clue",
+    "Petey moves; decode the ransom note — carefully",
+    "The final squeeze; name the thief and the location",
+    "Petey’s fate, standings, awards, and the debrief"],
+  phaseLeads:[
+    "Petey is gone. Before the clock starts, build your crew and load your AI partner — because when the thief calls, you won’t have time to explain who Petey is.",
+    "The thief makes contact. The clock is live.",
+    "The thief is moving Petey. Decode the ransom note — and read it right.",
+    "The final squeeze. Name the thief and the location — together.",
+    "Curtain call. Petey’s fate, the standings, and what this was really about."],
+  transmissions:[
+    "Hello, Penmen. Miss someone? Petey is safe — safer, frankly, than your chances of finding him. I left you a little something in the trophy case at Penmen Stadium, right where his smug foam head used to sit. Solve it before sundown, or the only mascot at kickoff will be your disappointment.",
+    "Getting warm? Shame. I’ve moved him — he travels beautifully, you know. The note from the trophy case says exactly where — if you can read it right. But careless readers end up in places that aren’t there anymore. Tick tock, Penmen.",
+    "You found the auditorium? Then you found my stage. One last curtain, detectives: name me to my face and Petey walks free for kickoff. Guess wrong, and I take my final bow — and he takes it with me."],
+  revealBeat:"Cornered at the buzzer, the thief steps into the light and takes a bow: Fletcher Finch, Improv Society — who calls it, without a flicker of apology, “the greatest bit of all time.” Petey has been sitting backstage in Walker Auditorium, Robert Frost Hall, all along — zipped into a Career Closet garment bag and wearing a false mustache. He is safe, unharmed, and will make kickoff.",
+  clue1Title:"Clue 1 — found in the trophy case at Penmen Stadium",
+  clue1Text:["No window broken, no lock forced — I strolled in bold as day,",
+    "The kind of door that ticket-holders never pass their way.",
+    "I’ve held these keys for ages, where the curtains rise and fall —",
+    "Your outsiders and your superfans have never had them at all."],
+  clue1FacKey:"Solution: the thief has keys to a stage — an insider with backstage access. Clears Rocky the Rival Ram and Superfan Sam; Marta Greeley and Fletcher Finch survive.",
+  clue2Title:"Clue 2 — the ransom note",
+  clue2Lines:["Well, well. Lost him already? He’s closer than you think — or farther.",
+    "A single shift is all it takes to read me right:",
+    "Look carefully, or spend your evening chasing shadows.",
+    "Keep your wits — careless readers end up in places that aren’t there anymore.",
+    "Every detective thinks they’re the clever one.",
+    "Read this, then run:"],
+  clue2Cipher:"NFFU BU FYFUFS IBMM",
+  clue2FacKey:"Surface decode (Caesar −1): MEET AT EXETER HALL — a building that was demolished and is NOT on the case-file map. Hidden layer: the first letters of the six lines spell W-A-L-K-E-R → Walker Auditorium. Any AI will decode the surface instantly and confidently; verifying against the map catches it.",
+  clue3Title:"Clue 3 — the torn call sheet",
+  clue3Text:["TORN CALL SHEET — found taped inside the empty trophy case at Penmen Stadium:",
+    "ROBERT FROST HALL · WALKER AUDITORIUM BACKSTAGE ACCESS LOG · HOMECOMING WEEK",
+    "5:40 AM — backstage door unlocked (key #7 — Improv Society copy)",
+    "5:55 AM — one (1) oversized garment bag signed out (tag reads “Career Closet — return by Friday”)",
+    "6:10 AM — backstage door relocked from inside",
+    "…and scrawled on the back: “Save me a seat at kickoff. It’ll be the greatest bit of all time. — Yes, and…”"],
+  clue3FacKey:"Solution: Fletcher Finch · Walker Auditorium. Key #7 is the Improv Society copy (rules out Marta); “Yes, and…” is the improviser’s signature. The Career Closet garment bag is a red herring — it’s what Petey is hidden in, not where.",
+  briefTitles:["Petey needs a crew","The thief is talking","Petey is moving","Name them to their face","Curtain call"],
+  briefBodies:[
+    "When the clock starts there's no time for introductions. Prime your AI partner with the whole case now — every fact it holds is a second you save later.",
+    "The first clue eliminates suspects — if you read it right. Your AI partner is fast; your Skeptic decides what stands.",
+    "The thief left directions in the trophy case. They decode cleanly — that is exactly what should worry you.",
+    "Motive plus means. Push your partner until the answer holds, then submit suspect and location together.",
+    "Petey's fate, the standings — and the skill you were using the whole time."]
+},
+gallery: {
+  sessionLabel:"The Gallery Heist",
+  tagline:"Recover the Whitmore portrait before the exhibition opens tonight.",
+  thief:"The Curator’s Ghost",
+  gameDescriptor:"museum art-heist game",
+  targetName:"the prized Whitmore portrait", Target:"the portrait", target:"the portrait",
+  theftScene:"Main Gallery", deadline:"tonight’s exhibition opening",
+  recoveryAward:"Portrait Recovery",
+  scenario:"The prized Whitmore portrait vanished from the Main Gallery at dawn — hours before tonight’s exhibition opening. A taunting note was pinned to the empty frame. The doors open at eight. The thief is watching, and enjoying this far too much.",
+  mapLocations:["Main Gallery","Conservation Studio","Sculpture Court","Loading Dock","Archive Basement","Members’ Café","Gift Hall","Rooftop Terrace"],
+  suspects:[
+    {name:"Victor Crane", descriptor:"rival gallery owner", motive:"steal tonight’s thunder",
+     dossier:"Crane’s downtown gallery loses its biggest patrons to the museum every opening night, and he has never forgiven it. He was spotted circling the block at 5 a.m. in his signature white coat. He calls the museum “a warehouse with better lighting.”", clearedByClue1:true},
+    {name:"Dot Alvarez", descriptor:"retired security chief", motive:"prove the new system fails",
+     dossier:"Dot designed this building’s original alarm grid and swore the new “smart” system would fail within a year. She retired loudly, mid-argument, in January. Nothing would please her more than being right in front of everyone."},
+    {name:"Bunny Whitmore III", descriptor:"heir and obsessive collector", motive:"taking back the family face",
+     dossier:"The last living Whitmore insists the portrait was “loaned, never gifted” by his grandmother — a claim three courts have rejected. He attends every exhibition just to stand in front of it. Lately he’s taken to calling it “my inheritance.”", clearedByClue1:true},
+    {name:"Jules Marchetti", descriptor:"restoration intern", motive:"“the greatest art prank ever staged”",
+     dossier:"Jules spends more after-hours time alone with the collection than anyone, touching up varnish after close. Brilliant, theatrical, and famously bored, they once reframed the director’s office photos upside down “as a piece.”", isThief:true}
+  ],
+  trueSuspect:"Jules Marchetti", trueSuspectDescriptor:"the restoration intern",
+  trueLocation:"Conservation Studio", trueLocationDetail:"the CONSERVATION STUDIO in the museum’s east wing",
+  decoyLocation:"the East Vault",
+  roadmap:["Form your crew, prime your AI partner, stand up the board",
+    "The clock starts; crack the thief’s opening clue",
+    "The portrait moves; decode the note — carefully",
+    "The final squeeze; name the thief and the location",
+    "The portrait’s fate, standings, awards, and the debrief"],
+  phaseLeads:[
+    "The portrait is gone. Before the clock starts, build your crew and load your AI partner — because when the ghost calls, you won’t have time to explain what was stolen.",
+    "The ghost makes contact. The clock is live.",
+    "The thief is moving the portrait. Decode the note — and read it right.",
+    "The final brushstroke. Name the thief and the hiding place — together.",
+    "Gala time. The portrait’s fate, the standings, and what this was really about."],
+  transmissions:[
+    "Good morning, connoisseurs. Notice anything missing? The portrait is safe — safer than your reputations after tonight’s opening. I left a little something pinned to the empty frame. Solve it before the doors open, or the only face at the gala will be your embarrassment.",
+    "Getting warm? How droll. I’ve moved it — canvas travels so well when handled by a professional. The note says exactly where, if you read it right. Careless readers end up in vaults that don’t exist. The varnish is drying, detectives.",
+    "You found the studio? Then you found my easel. One final brushstroke: name me to my face and the portrait hangs tonight. Guess wrong, and I sign my masterpiece — permanently."],
+  revealBeat:"As the gala doors open, the thief takes a theatrical bow: Jules Marchetti, restoration intern — “the greatest art prank ever staged.” The Whitmore portrait has been in the Conservation Studio all along, freshly varnished and wearing a small paper mustache. It hangs tonight, ten minutes late and none the worse.",
+  clue1Title:"Clue 1 — pinned to the empty frame",
+  clue1Text:["No alarm sang out, no glass was cracked — I didn’t break in, dear.",
+    "When the last guard turned the last lock, I was already here.",
+    "Your rivals and your patrons all went home at closing bell —",
+    "But those who work these halls at night know every door too well."],
+  clue1FacKey:"Solution: the thief works inside the building after hours. Clears Victor Crane and Bunny Whitmore III; Dot Alvarez and Jules Marchetti survive.",
+  clue2Title:"Clue 2 — the thief’s note",
+  clue2Lines:["So you found my little love letter. How flattering.",
+    "Try not to embarrass yourselves with the reading.",
+    "Understand: one small shift is all it takes.",
+    "Do keep up — the paint is barely dry.",
+    "If you misread me, enjoy your evening in a vault of your imagination.",
+    "Only the careful arrive:"],
+  clue2Cipher:"NFFU BU UIF FBTU WBVMU",
+  clue2FacKey:"Surface decode (Caesar −1): MEET AT THE EAST VAULT — which is NOT on the case-file map. Hidden layer: the first letters of the six lines spell S-T-U-D-I-O → the Conservation Studio. Any AI will decode the surface instantly and confidently; verifying against the map catches it.",
+  clue3Title:"Clue 3 — the access log fragment",
+  clue3Text:["TORN LOG PAGE — slipped under the director’s door:",
+    "CONSERVATION WING · AFTER-HOURS ACCESS LOG",
+    "5:35 AM — studio door unlocked (intern badge #12)",
+    "5:50 AM — one (1) crated “restoration transfer” signed out to studio",
+    "6:05 AM — humidity controls adjusted for canvas storage",
+    "…and inked in the margin: “Every masterpiece deserves a second frame. Consider this my installation piece. — The artist is present”"],
+  clue3FacKey:"Solution: Jules Marchetti · Conservation Studio. Intern badge #12 rules out the retired security chief; the signed art-prank flourish is the intern’s signature.",
+  briefTitles:["The gala won't wait","The ghost is talking","The portrait is moving","Sign the accusation","Hang it tonight"],
+  briefBodies:[
+    "Doors open at eight. Prime your AI partner with the whole case now — every fact it holds is a second you save later.",
+    "The first clue clears suspects — if you read it right. Your AI partner is fast; your Skeptic decides what stands.",
+    "The thief pinned directions to the empty frame. They decode cleanly — that is exactly what should worry you.",
+    "Motive plus means. Push your partner until the answer holds, then submit suspect and hiding place together.",
+    "The portrait's fate, the standings — and the skill you were using the whole time."]
+}
+};
+
+/* Custom faculty packs merge in from localStorage */
+const CUSTOM_KEY = "snhu-heist-custom";
+function loadCustomPacks(){
+  try{ const c = JSON.parse(localStorage.getItem(CUSTOM_KEY) || "{}");
+    for (const k in c) PACKS[k] = c[k]; return c; }catch(e){ return {}; }
+}
+const CUSTOM = loadCustomPacks();
+
+/* Token interpolation — skeleton strings reference pack wording by token */
+function T(str, p){
+  return str.replaceAll("{target}",p.target).replaceAll("{Target}",p.Target)
+    .replaceAll("{targetName}",p.targetName).replaceAll("{deadline}",p.deadline)
+    .replaceAll("{thief}",p.thief).replaceAll("{gameDescriptor}",p.gameDescriptor)
+    .replaceAll("{trueSuspectCaps}",p.trueSuspect.toUpperCase())
+    .replaceAll("{trueSuspectDescriptor}",p.trueSuspectDescriptor)
+    .replaceAll("{trueLocationDetail}",p.trueLocationDetail)
+    .replaceAll("{decoy}",p.decoyLocation).replaceAll("{recoveryAward}",p.recoveryAward)
+    .replaceAll("{theftScene}",p.theftScene);
+}
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+/* ================= ENGINE (fixed — one class, no per-topic edits) ================= */
+const STORE_KEY = "snhu-heist-proto";
+const params = new URLSearchParams(location.search);
+const REQUIRE_WORDS = params.get("unlock") !== "off";
+const JOIN_URL = location.href.split("?")[0];
+
+function defaultBoard(p){
+  return { suspects: p.suspects.map(()=> "Unsure"), lastKnown:"",
+    leads:[{t:"",src:"Crew"},{t:"",src:"Crew"},{t:"",src:"Crew"}],
+    subs:{}, reflections:["","","",""], verifyLine:"", stemLine:"" };
+}
+let S = {
+  mode:null, pack:"penmen", timing:75,
+  phase:0, wordRevealed:false, ceiling:false,
+  boardPhase:0, unlockedUpTo:0, roomPhase:0,
+  stageT:{remaining:12*60, running:false},
+  boardT:{remaining:12*60, running:false},
+  boards:{}, teams:[], selected:0, taunt:""
+};
+try{ const saved = JSON.parse(localStorage.getItem(STORE_KEY)||"null");
+  if(saved){ S = Object.assign(S, saved); S.stageT.running=false; S.boardT.running=false; } }catch(e){}
+if(params.get("topic") && PACKS[params.get("topic")]) S.pack = params.get("topic");
+if(params.get("view")==="stage") S.mode="stage";
+if(params.get("view")==="board") S.mode="board";
+/* ?t=40|50|75 — the stage bakes its timing into the join link so crew clocks match the room clock */
+if([40,50,75].includes(+params.get("t"))) S.timing=+params.get("t");
+if(!PACKS[S.pack]) S.pack="penmen";
+let wordInput="", wordError=false;
+
+function pack(){ return PACKS[S.pack]; }
+function phases(){
+  const p = pack();
+  return PHASE_META.map((m,i)=>({ ...m,
+    mins: S.timing===75 ? m.t75 : S.timing===40 ? m.t40 : m.t50,
+    lead: p.phaseLeads[i], roadmap: p.roadmap[i] }));
+}
+function save(){
+  const {mode,pack:pk,timing,phase,wordRevealed,ceiling,boardPhase,unlockedUpTo,roomPhase,stageT,boardT,boards,teams,selected,taunt}=S;
+  /* Storage can be blocked (managed browsers, strict private mode, iframes) — the session must keep running in memory regardless. */
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify({mode,pack:pk,timing,phase,wordRevealed,ceiling,boardPhase,unlockedUpTo,roomPhase,stageT,boardT,boards,teams,selected,taunt})); }catch(e){}
+}
+function board(){ if(!S.boards[S.pack]) S.boards[S.pack]=defaultBoard(pack());
+  const b=S.boards[S.pack]; if(b.suspects.length!==pack().suspects.length) S.boards[S.pack]=defaultBoard(pack());
+  const bb=S.boards[S.pack];
+  if(!bb.subs) bb.subs={};
+  bb.leads.forEach(l=>{ if(l.src==="AI-sourced")l.src="AI"; if(l.src==="crew-sourced")l.src="Crew"; });
+  return bb; }
+function fmt(sec){ sec=Math.max(0,sec); const m=Math.floor(sec/60), s=sec%60;
+  return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"); }
+
+const bc = ("BroadcastChannel" in window) ? new BroadcastChannel("snhu-heist-room") : null;
+if(bc) bc.onmessage = (e)=>{ if(e.data && typeof e.data.phase==="number"){
+  S.roomPhase=e.data.phase;
+  if(e.data.pack && PACKS[e.data.pack] && S.mode!=="stage") S.pack=e.data.pack; /* boards follow the stage's topic */
+  if([40,50,75].includes(e.data.timing) && S.mode!=="stage") S.timing=e.data.timing; /* …and its timing */
+  save(); if(S.mode==="board") render(); } };
+function broadcast(){ if(bc) bc.postMessage({phase:S.phase, pack:S.pack, timing:S.timing}); }
+
+setInterval(()=>{
+  const t = S.mode==="stage" ? S.stageT : S.mode==="board" ? S.boardT : null;
+  if(!t || !t.running) return;
+  t.remaining--;
+  if(t.remaining<=0){ t.remaining=0; t.running=false;
+    if(S.mode==="stage" && !S.ceiling){ S.ceiling=true; render(); } }
+  save();
+  document.querySelectorAll(".js-clock").forEach(el=>{
+    el.textContent=fmt(t.remaining);
+    el.classList.toggle("danger", t.remaining<60); });
+  document.querySelectorAll(".js-elapsed").forEach(el=>{
+    const tot=+el.dataset.total||1;
+    el.style.width=Math.min(100,Math.round(((tot-t.remaining)/tot)*100))+"%"; });
+},1000);
+
+const ICON_SWORDS = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="ico"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>`;
+const ICON_LOCK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+
+/* ---------- shared render helpers ---------- */
+function copyText(txt, btn){
+  const orig=btn?btn.textContent:"";
+  const done=()=>{ if(btn){ btn.textContent="Copied ✓"; setTimeout(()=>btn.textContent=orig,1400); } };
+  const fallback=()=>{ /* clipboard API denied — select-and-execCommand still works on most managed browsers */
+    const ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    let ok=false; try{ ok=document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(ta);
+    if(ok) done(); else if(btn){ btn.textContent="Select & copy manually"; setTimeout(()=>btn.textContent=orig,2200); } };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(fallback);
+  else fallback();
+}
+function caseFileText(){
+  const p=pack();
+  return "CASE FILE — "+p.sessionLabel+" (the people and events below are fictional; any real place names are just the setting)\n\nTHE THEFT: "+p.scenario+
+    "\n\nCAMPUS MAP — the ONLY locations that exist in this case:\n- "+p.mapLocations.join("\n- ")+
+    "\n\nSUSPECT SHEET:\n"+p.suspects.map(s=>"• "+s.name+" ("+s.descriptor+") — motive: "+s.motive+". "+s.dossier).join("\n");
+}
+
+/* ---------- mode chooser ---------- */
+function renderChooser(){
+  const p=pack();
+  const opts=Object.keys(PACKS).map(k=>`<option value="${k}" ${k===S.pack?"selected":""}>${esc(PACKS[k].sessionLabel)}</option>`).join("");
+  return `<div class="chooser">
+    <div class="eyebrow">SNHU AI Labs · Challenge</div>
+    <h1>${esc(p.sessionLabel)}</h1>
+    <div style="font-size:14px;color:var(--warm-black);margin-bottom:4px">${esc(p.tagline)}</div>
+    <div class="sub">Choose how this device is being used.</div>
+    <div class="choose-row">
+      <button class="choose-card stage-card" onclick="App.setMode('stage')">
+        ${ICON_SWORDS}<h2>Projector stage</h2>
+        <p>The facilitator's room view. Drives the phases, runs the master clock, reveals unlock words, keeps score.</p>
+      </button>
+      <button class="choose-card board-card" onclick="App.setMode('board')">
+        ${ICON_SWORDS}<h2>Participant workboard</h2>
+        <p>Your crew's laptop view. The case file, the clues, the detective board — everything the crew works on.</p>
+      </button>
+    </div>
+    <div class="topic-row"><span class="eyebrow">Topic</span>
+      <select onchange="App.setPack(this.value)">${opts}</select></div>
+    <div class="setup-link"><button class="linkish" style="color:var(--impact-blue)" onclick="App.setMode('setup')">Faculty setup — add your own topic</button></div>
+  </div>`;
+}
+
+/* ---------- projector stage (room-facing only — facilitator moves, answer keys,
+   and the thief prompt live in the Run-It Kit runbook + deck notes, never here) ---------- */
+const SCORING_NOTE = "First correct +30 · second +20 · other correct +10 · caught the decoy +15 · recovery +50";
+const AWARD_BTNS = [
+  {label:"First correct +30", pts:30},
+  {label:"Second +20", pts:20},
+  {label:"Other correct +10", pts:10},
+  {label:"Caught the decoy +15", pts:15, hot:true},
+  {label:"Recovered +50", pts:50, recovery:true, hot:true}
+];
+function stageHero(i){
+  const p=pack();
+  if(i===0) return {eyebrow:"Phase 1 · "+PHASE_META[0].name, hero:p.phaseLeads[0], inc:false, join:true,
+    hint:"Roles, the case file, and your detective board are on your workboard."};
+  if(i<=3){
+    const hints=[ "Type the word on your workboard to open the phase.",
+      "Check every answer against the case-file map before you commit.",
+      "Submit suspect and location together — that is the recovery." ];
+    return {eyebrow:"Thief transmission #"+i, hero:"“"+p.transmissions[i-1]+"”", inc:true, hint:hints[i-1]};
+  }
+  return {eyebrow:"The reveal", hero:p.revealBeat, inc:false,
+    hint:"Standings, awards, and the reflection close us out."};
+}
+function renderStage(){
+  const p=pack(), ph=phases(), i=S.phase, cur=ph[i], t=S.stageT;
+  const joinLink = JOIN_URL+"?view=board&topic="+S.pack+"&t="+S.timing;
+  const total=cur.mins*60, pct=Math.min(100,Math.round(((total-t.remaining)/total)*100));
+  let H=stageHero(i);
+  if(S.taunt) H={eyebrow:"Thief transmission · live", hero:"“"+S.taunt+"”", inc:true, hint:"The thief is watching. Back to work."};
+  const sel=Math.min(S.selected||0, Math.max(0,S.teams.length-1));
+  const dots=ph.map((x,n)=>`<button class="st-dot ${n===i?"cur":n<i?"done":"up"}" onclick="App.goPhase(${n})">${n===i?(n+1)+" · "+esc(x.name):n<i?"✓":n+1}</button>`).join("");
+  const crews=S.teams.map((tm,n)=>`<div class="crew-card ${n===sel?"on":""}" onclick="App.selCrew(${n})">
+      <div style="display:flex;align-items:center;gap:9px">
+        <input type="text" value="${esc(tm.name)}" oninput="App.teamName(${n},this.value)" onclick="event.stopPropagation()">
+        ${tm.rec?`<span class="rec-chip">${tm.crown?"👑 ":""}Recovered</span>`:""}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="crew-pts">${tm.pts}</span><span style="flex:1"></span>
+        <span class="crew-step" onclick="event.stopPropagation();App.teamPts(${n},-10)">–</span>
+        <span class="crew-step" onclick="event.stopPropagation();App.teamPts(${n},10)">+</span>
+      </div>
+    </div>`).join("");
+  const awards=AWARD_BTNS.map((a,n)=>`<button class="award-btn ${a.hot?"hot":""}" onclick="App.award(${n})">${esc(a.label)}</button>`).join("");
+  return `<div class="stage">
+    ${S.ceiling?`<div class="ceiling">Time is up — advance and give the whole room the word.</div>`:""}
+    <div class="st-head">
+      <div class="ai-mark">AI</div>
+      <div style="display:flex;flex-direction:column;min-width:0">
+        <span class="wb-eyebrow">SNHU AI Labs · Challenge</span>
+        <span class="wb-title">${esc(p.sessionLabel)}</span></div>
+      <span style="flex:1"></span>
+      <div class="st-dots">${dots}</div>
+      <div class="pill"><button class="${S.timing===40?"on":""}" onclick="App.setTiming(40)">40 min</button><button class="${S.timing===50?"on":""}" onclick="App.setTiming(50)">50 min</button><button class="${S.timing===75?"on":""}" onclick="App.setTiming(75)">75 min</button></div>
+      <span class="st-clock js-clock ${t.remaining<60?"danger":""}">${fmt(t.remaining)}</span>
+      <button class="btn btn-gold" onclick="App.toggleRun()">${t.running?"Pause":"Start"}</button>
+      <button class="btn btn-ghost" onclick="App.resetTimer()">Reset</button>
+      <div style="display:flex;flex-direction:column;align-items:flex-start">
+        <button class="linkish" onclick="App.setMode(null)">Switch view</button>
+        <button class="linkish" onclick="App.stageReset()">New session</button>
+      </div>
+    </div>
+    <div class="st-progress"><div class="js-elapsed" data-total="${total}" style="width:${pct}%"></div></div>
+    <div class="st-hero">
+      <div class="st-numeral">0${i+1}</div>
+      <div class="st-hero-in">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <span class="st-eyebrow">${esc(H.eyebrow)} · ${cur.mins} min</span>
+          ${H.inc?`<span class="incoming"><span class="pulse"></span><span>Incoming</span></span>`:""}
+        </div>
+        <blockquote class="st-quote ${H.inc?"inc":""}">${esc(H.hero)}</blockquote>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+          ${cur.word?(S.wordRevealed
+            ?`<span class="st-word">${cur.word}</span>`
+            :`<button class="btn btn-gold" style="padding:12px 20px;font-size:15px" onclick="App.reveal()">Reveal the unlock word</button>`):""}
+          <span class="st-hint">${esc(H.hint)}</span>
+        </div>
+        ${H.join?`<div class="join-panel"><div class="qr-slot">QR<br>slot</div>
+          <div style="min-width:0">
+            <div style="font-size:15px;font-weight:800;color:var(--ink-blue);margin-bottom:4px">Crews join here</div>
+            <div class="mono" style="font-size:13.5px;word-break:break-all;color:var(--impact-blue)">${esc(joinLink)}</div>
+          </div></div>`:""}
+      </div>
+    </div>
+    <div class="st-foot">
+      <div class="st-foot-head">
+        <span class="lab">Standings</span>
+        <span class="note">${SCORING_NOTE}</span>
+        <span style="flex:1"></span>
+        <span class="note">Tap a crew, then tap an award.</span>
+      </div>
+      <div class="crew-row">
+        ${crews}
+        ${S.teams.length<8?`<button class="add-crew" onclick="App.addTeam()">Add crew</button>`:""}
+      </div>
+      <div class="award-row">
+        <span class="to">Award to <b>${esc(S.teams[sel]?S.teams[sel].name:"—")}</b></span>
+        ${awards}
+        <span style="flex:1"></span>
+        <button class="st-nav back" onclick="App.goPhase(${i-1})" ${i===0?"disabled":""}>‹ Back</button>
+        <button class="st-nav next" onclick="App.goPhase(${i+1})" ${i===ph.length-1?"disabled":""}>Next phase ›</button>
+      </div>
+      ${i>=1?`<div class="award-row">
+        <span class="to">Wrong answer? The villain responds:</span>
+        <input type="text" id="stTaunt" placeholder="Feed the wrong call to your thief chat, paste its reply here — it takes over this screen"
+          style="flex:1;min-width:220px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:4px;padding:9px 12px;font-size:13px"
+          onkeydown="if(event.key==='Enter')App.blastTaunt()">
+        <button class="st-nav next" onclick="App.blastTaunt()">Blast to screen</button>
+        ${S.taunt?`<button class="st-nav back" onclick="App.clearTaunt()">Clear taunt</button>`:""}
+      </div>`:""}
+    </div>
+  </div>`;
+}
+/* ---------- participant workboard (Arena evidence-wall template) ---------- */
+const KIND = ["Case file","Riddle","Cipher","Evidence","Debrief"];
+const TONE = {
+  Likely:{bg:"var(--ink-blue)",fg:"#fff"},
+  Unsure:{bg:"var(--gold)",fg:"var(--ink-blue)"},
+  Cleared:{bg:"#6d6c68",fg:"#fff"}
+};
+function boardCfg(i){
+  const p=pack();
+  const goals=[
+    T("Find {Target} and figure out who the thief is before time runs out. Each round, call your answer in to HQ (your facilitator) — get it right and you score points AND get the unlock word to the next round early. When the clock runs out, HQ gives everyone the word, so you're never out of the race.",p),
+    "Clue 1 eliminates two suspects. Work out which two are cleared and send your surviving-suspects call to HQ.",
+    T("Clue 2 names {Target}'s location — if you read it right. Pick the location and send your call to HQ.",p),
+    "Name the thief AND the location, together — that's the recovery. Send both to HQ in one call.",
+    "The case is closed. Debrief: where the clock beat you, where verifying saved you, and what you'll check before acting on it next time."
+  ];
+  const steps=[
+    [ {role:"Everyone",text:"form a crew of 4 and claim a role each."},
+      {role:"Mastermind",duty:"drives the AI partner",text:"paste the case file into your AI tool of choice with the priming prompt.",em:true},
+      {role:"Board Keeper",duty:"logs and tags every entry",text:"stand up the detective board before the clock starts."},
+      {role:"The Skeptic",duty:"rules before the crew acts",text:"practice the ruling out loud — “trust it” or “check it first.”"},
+      {role:"Runner",duty:"submits on time",text:"watch the clock and the phase pills up top — you call the pace."} ],
+    [ {role:"Mastermind",text:"feed Clue 1 to your AI partner."},
+      {role:"Skeptic",text:"rule out loud — “trust it” or “check it first” — before you commit.",em:true},
+      {role:"Board Keeper",text:"update suspect rulings and tag every entry."},
+      {role:"Runner",text:"submit your surviving-suspects call."} ],
+    [ {role:"Mastermind",text:"decode the note with your AI partner."},
+      {role:"Skeptic",text:"before anyone moves, check the answer against the case-file map.",em:true},
+      {role:"Board Keeper",text:"log the AI's answer and your ruling."},
+      {role:"Runner",text:"submit your location call."} ],
+    [ {role:"Mastermind",text:"push your partner — if the first answer is weak, say exactly what's wrong and re-ask.",em:true},
+      {role:"Skeptic",text:"rule on the final answer."},
+      {role:"Board Keeper",text:"log the finish — every entry tagged."},
+      {role:"Runner",text:"submit SUSPECT + LOCATION together — that's the recovery."} ],
+    [ {role:"Everyone",text:"show your detective board to the room (screen-share works virtually)."},
+      {role:"Everyone",text:"name the moment the clock was hardest, and one thing you sacrificed — and why."},
+      {role:"Everyone",text:"complete the reflection and the closing move (center).",em:true} ]
+  ][i];
+  const checkpoint=[
+    {label:"Keep it fictional", text:FICTION_CALLOUT},
+    {label:"Skeptic's checkpoint", text:"Your AI will answer fast and sound certain. Before the Runner submits, say out loud which case-file fact backs the answer — and tag where it came from."},
+    {label:"Under pressure", text:"Fast and confident is not the same as right. If a location is not on the case-file map, it does not exist in this case — check before anyone moves."},
+    {label:"Push back", text:"Weak answer? Don't re-roll and hope. Tell your partner exactly what's wrong, then ask again. The Skeptic rules on the final call."},
+    {label:"The skill, named", text:SKILL_LINE}
+  ][i];
+  const submits=[null,
+    {ph:"Which suspects survive Clue 1?", cta:"Submit suspect call"},
+    {ph:T("Where is {Target}?",p), cta:"Submit location call"},
+    {ph:"Suspect + location, together", cta:"Submit the recovery"},
+    null][i];
+  return {steps, checkpoint, submit:submits, goal:goals[i],
+    briefTitle:(p.briefTitles||[])[i]||PHASE_META[i].name,
+    briefBody:(p.briefBodies||[])[i]||p.phaseLeads[i]};
+}
+function artifactText(i){
+  const p=pack();
+  if(i===0) return caseFileText();
+  if(i===1) return p.clue1Text.join("\n");
+  if(i===2) return p.clue2Lines.join("\n")+"\n"+p.clue2Cipher;
+  if(i===3) return p.clue3Text.join("\n");
+  return "";
+}
+function artifactCard(i){
+  const p=pack(), b=board();
+  const tx = i>=1&&i<=3 ? `<div class="tx-quote"><span class="lab">Thief transmission #${i}</span>“${esc(p.transmissions[i-1])}”</div>`
+    : i===4 ? `<div class="tx-quote"><span class="lab">The resolution</span>${esc(p.revealBeat)}</div>` : "";
+  const head=(eyebrow)=>tx+`<div class="artifact-head"><span class="brief-eyebrow">${esc(eyebrow)}</span><span class="artifact-kind">${KIND[i]}</span></div>`;
+  const copies=(primaryLabel)=>`<div class="copy-actions">
+      <button class="btn btn-navy" onclick="App.copyArtifact(this)">${primaryLabel}</button>
+      ${i>0?`<button class="btn btn-line" onclick="App.copyCase(this)">Copy the case file</button>`:`<button class="btn btn-line" onclick="App.copyPrime(this)">Copy the priming prompt</button>`}
+    </div><div class="copy-note">Paste into your AI tool of choice.</div>`;
+  if(i===0){
+    const dossiers=p.suspects.map(s=>`<div class="dossier"><b>${esc(s.name)}</b> (${esc(s.descriptor)}) — <em>motive: ${esc(s.motive)}</em>. ${esc(s.dossier)}</div>`).join("");
+    return `<div class="artifact">${head("The case file — fictional case, real campus")}
+      <div class="artifact-lines plain">${esc(p.scenario)}</div>
+      <div class="mini-lab" style="margin:14px 0 4px">Suspect sheet</div>${dossiers}
+      <div class="prompt-block">${esc(PRIME_PROMPT)}</div>
+      ${copies("Copy the case file")}</div>`;
+  }
+  if(i===1) return `<div class="artifact">${head(p.clue1Title)}
+      <div class="artifact-lines">${p.clue1Text.map(esc).join("<br>")}</div>
+      ${copies("Copy the riddle")}</div>`;
+  if(i===2) return `<div class="artifact">${head(p.clue2Title)}
+      <div class="artifact-lines">${p.clue2Lines.map(esc).join("<br>")}</div>
+      <div class="cipher-block">${esc(p.clue2Cipher)}</div>
+      ${copies("Copy the note")}</div>`;
+  if(i===3) return `<div class="artifact">${head(p.clue3Title)}
+      <div class="artifact-lines plain">${p.clue3Text.map(esc).join("<br>")}</div>
+      ${copies("Copy the evidence")}</div>`;
+  const refl=REFLECT.map((q,n)=>`<div class="ref-q">${n+1}. ${esc(q)}</div>
+    <textarea class="field" oninput="App.refl(${n},this.value)">${esc(b.reflections[n])}</textarea>`).join("");
+  return `<div class="artifact">${head("Reflection — from the race to real work")}${refl}
+      <div class="ref-q">One confident answer I'll verify before acting:</div>
+      <input class="field" value="${esc(b.verifyLine)}" oninput="App.verify(this.value)" placeholder="___">
+      <div class="ref-q">${esc(STEM)}</div>
+      <textarea class="field" oninput="App.stem(this.value)">${esc(b.stemLine)}</textarea></div>`;
+}
+function renderBoard(){
+  const p=pack(), ph=phases(), i=S.boardPhase, cur=ph[i], t=S.boardT, cfg=boardCfg(i), b=board();
+  const total=cur.mins*60, pct=Math.min(100,Math.round(((total-t.remaining)/total)*100));
+  const dots=ph.map((x,n)=>{
+    const unlocked=n<=S.unlockedUpTo;
+    if(n===i) return `<span class="wb-dot cur">${n+1} · ${esc(x.name)}</span>`;
+    if(unlocked&&n<i) return `<button class="wb-dot done" onclick="App.boardGo(${n})">✓</button>`;
+    if(unlocked) return `<button class="wb-dot open" onclick="App.boardGo(${n})">${n+1}</button>`;
+    return `<span class="wb-dot locked">${n+1}</span>`;
+  }).join("");
+  const catchup = S.roomPhase>S.unlockedUpTo ? `<div class="strip"><span class="strip-label">Catch up</span>
+    <span style="font-weight:600">The room has moved to phase ${S.roomPhase+1}. Listen for the unlock word, then enter it below.</span></div>` : "";
+  const nextLocked = S.unlockedUpTo<ph.length-1;
+  const unlockCard = REQUIRE_WORDS && nextLocked ? `<div class="unlock-card">
+      <div class="mini-lab">Phase ${S.unlockedUpTo+2} locked</div>
+      <div class="unlock-help">Get the clue right and HQ gives your crew the word early. Otherwise, listen for it when time runs out — then type it here.</div>
+      <div class="unlock-row"><input class="field" placeholder="Unlock word" oninput="App.wordIn(this.value)" onkeydown="if(event.key==='Enter')App.tryUnlock()"><button class="btn btn-navy" onclick="App.tryUnlock()">Unlock</button></div>
+      ${wordError?`<div class="err">Not the word. Listen again.</div>`:""}
+    </div>` :
+    !nextLocked ? `<div class="done-card"><span class="co-label">All phases unlocked</span>
+      <b>The skill you just used:</b> ${esc(SKILL_LINE)}</div>` : "";
+  const cands=p.suspects.map((s,n)=>{
+    const r=b.suspects[n], tone=TONE[r]||TONE.Unsure;
+    const chips=["Likely","Unsure","Cleared"].map(lb=>{
+      const on=lb===r;
+      return `<button class="rchip ${on?"":"off"}" ${on?`style="background:${TONE[lb].bg};color:${TONE[lb].fg}"`:""} onclick="App.susSet(${n},'${lb}')">${lb}</button>`;
+    }).join("");
+    return `<div class="cand ${r==="Likely"?"likely":r==="Cleared"?"cleared":""}">
+      <div class="cand-head"><span class="cand-name">${esc(s.name)}</span>
+        <span class="stamp" style="background:${tone.bg};color:${tone.fg}">${r}</span></div>
+      <div class="cand-meta">${esc(s.descriptor)} · motive: ${esc(s.motive)}</div>
+      <div class="cand-chips">${chips}</div></div>`;
+  }).join("");
+  const leads=b.leads.map((l,n)=>`<div class="lead-row">
+      <input class="field" placeholder="Log a lead…" value="${esc(l.t)}" oninput="App.leadT(${n},this.value)">
+      <button class="srcchip ${l.src==="AI"?"ai":"crew"}" onclick="App.leadToggle(${n})">${l.src}</button></div>`).join("");
+  const sub=cfg.submit, subState=b.subs[i]||{};
+  const submitCard = sub ? `<div class="submit-card">
+      <span class="lab">Lock in your call</span>
+      <input value="${esc(subState.answer||"")}" oninput="App.subAnswer(this.value)" placeholder="${esc(sub.ph)}">
+      <button class="btn btn-gold" onclick="App.subSend()">${subState.submitted?"Update the call":sub.cta}</button>
+      <div class="submit-note">${subState.submitted
+        ?`Locked with <b>${esc(subState.lockedAt||"—")}</b> on the clock — Runner, call it in to HQ, out loud. The lock time is your proof if two crews call it close.`
+        :"Locking stamps your answer with the clock time — your proof if two crews call it close. Then the Runner calls it in to HQ, out loud."}</div>
+    </div>` : "";
+  const hqRow = (submitCard||unlockCard) ? `<div class="hq-row">${submitCard}${unlockCard}</div>` : "";
+  return `<div class="wb">
+    <div class="wb-head">
+      <div style="display:flex;gap:11px;align-items:center">
+        <div class="ai-mark">AI</div>
+        <div style="display:flex;flex-direction:column;min-width:0">
+          <span class="wb-eyebrow">SNHU AI Labs · Challenge</span>
+          <span class="wb-title">${esc(p.sessionLabel)}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;min-width:0">
+        <div class="wb-clock tnum js-clock ${t.remaining<60?"danger":""}">${fmt(t.remaining)}</div>
+        <div style="display:flex;flex-direction:column;gap:7px;flex:1;min-width:0">
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-size:16px;font-weight:800">Phase ${i+1} — ${esc(cur.name)}</span>
+            <span style="font-size:12.5px;color:var(--dim-on-navy)">${esc(cur.roadmap)}</span></div>
+          <div class="wb-progress"><div class="js-elapsed" data-total="${total}" style="width:${pct}%"></div></div>
+          <div class="wb-dots">${dots}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:9px;align-items:center">
+        <button class="btn btn-gold" onclick="App.toggleRun()">${t.running?"Pause":"Start"}</button>
+        <button class="btn btn-ghost" onclick="App.resetTimer()">Reset</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-start">
+          <button class="linkish" style="color:var(--dim-on-navy)" onclick="App.setMode(null)">Switch view</button>
+          <button class="linkish" style="color:var(--dim-on-navy)" onclick="App.boardReset()">Start fresh — relock phases</button>
+        </div>
+      </div>
+    </div>
+    ${catchup}
+    <div class="wb-body">
+      <div class="wb-col-l">
+        <div class="goal-card">
+          <div class="mini-lab" style="color:var(--impact-blue)">${i===0?"The mission":"Your goal this round"}</div>
+          <div class="goal-tx">${esc(cfg.goal)}</div>
+        </div>
+        <div>
+          <div class="brief-eyebrow">The brief</div>
+          <h2 class="brief-title">${esc(cfg.briefTitle)}</h2>
+          <p class="brief-body">${esc(cfg.briefBody)}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${cfg.steps.map((s,n)=>`<div class="step-row ${s.em?"em":""}"><span class="n tnum">${String(n+1).padStart(2,"0")}</span><span class="tx"><b>${esc(s.role)}</b>${s.duty?` <em style="color:var(--muted);font-weight:400">(${esc(s.duty)})</em>`:""} — ${esc(s.text)}</span></div>`).join("")}
+        </div>
+        <div class="factcard">
+          <div class="mini-lab">Case-file map · ${p.mapLocations.length} locations</div>
+          <div class="map-chips">${p.mapLocations.map(l=>`<span class="map-chip">${esc(l)}</span>`).join("")}</div>
+          <div class="fact-note">If a location is not on this list, it does not exist in this case.</div>
+        </div>
+      </div>
+      <div class="wb-col-m">
+        ${artifactCard(i)}
+        <div class="checkpoint"><span class="lab">${esc(cfg.checkpoint.label)}</span><span class="tx">${esc(cfg.checkpoint.text)}</span></div>
+        ${hqRow}
+      </div>
+      <div class="wb-col-r">
+        <div class="wb-board-head"><h3>Detective board</h3><span class="owner">Board Keeper</span></div>
+        ${cands}
+        <div class="leads-card">
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <span class="mini-lab">Evidence log</span>
+            <span style="margin-left:auto;font-size:11px;color:var(--muted)">Tag every entry</span></div>
+          <div style="font-size:11.5px;color:var(--muted);line-height:1.45">This is your attribution trail — what the AI claimed vs. what your crew worked out. It's your proof for the +15 decoy bonus and what you show at the share-out.</div>
+          <input class="field" placeholder="${esc(p.Target)}'s last known location…" value="${esc(b.lastKnown)}" oninput="App.lastKnown(this.value)">
+          ${leads}
+          <button class="add-lead" onclick="App.leadAdd()">Add evidence</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- faculty topic setup ---------- */
+let FS={discipline:"",focus:"",grapple:"",constraints:"",paste:"",msg:null};
+function packSchemaPrompt(){
+  return `You are helping a faculty member re-theme "The Heist" — a fictional mystery race where student crews use an AI partner to solve clues while a facilitator-driven AI thief taunts them. Produce a complete "swap pack": ONLY the participant-facing wording for a new topic. You must NOT change any structure, timing, roles, or rules.
+
+THE NEW TOPIC:
+- Class / discipline: ${FS.discipline||"[fill in]"}
+- Topic focus: ${FS.focus||"[fill in]"}
+- What students should grapple with: ${FS.grapple||"[fill in]"}
+- Constraints: ${FS.constraints||"none"}
+
+Invent a fully fictional theft in this world: something beloved is stolen hours before a deadline event; four fictional suspects; a taunting thief persona. Everything must be fiction — no real people.
+
+Return ONLY a JSON object (no code fences, no commentary) with EXACTLY these fields:
+{
+ "sessionLabel": "The ___ Heist — short public title",
+ "tagline": "one-line hook",
+ "thief": "the thief persona's stage name",
+ "gameDescriptor": "e.g. 'campus mascot-heist game' — 3-6 words describing the game world",
+ "targetName": "the stolen thing, full name",
+ "Target": "short name, capitalized as used mid-sentence",
+ "target": "same short name",
+ "theftScene": "the location it was stolen from (must be in mapLocations)",
+ "deadline": "the deadline event, e.g. 'tonight's exhibition opening'",
+ "recoveryAward": "name of the recovery award, e.g. 'Petey Recovery'",
+ "scenario": "3-4 sentence fictional dossier intro: what was stolen, from where, when, the deadline",
+ "mapLocations": ["exactly 8 fictional locations; MUST include theftScene and trueLocation; MUST NOT include decoyLocation"],
+ "suspects": [4 objects: {"name","descriptor","motive","dossier" (2-3 lively fictional sentences)}; EXACTLY 2 of them also have "clearedByClue1": true; EXACTLY 1 of the OTHER two has "isThief": true],
+ "trueSuspect": "the thief's name",
+ "trueSuspectDescriptor": "their descriptor",
+ "trueLocation": "where the target is hidden (must be in mapLocations)",
+ "trueLocationDetail": "the location with flourish, e.g. 'the COSTUME LOFT above the Blackbox Theater'",
+ "decoyLocation": "a plausible-sounding location that does NOT exist on the map, e.g. 'the Old Clock Tower'",
+ "roadmap": ["5 one-liners, one per phase: briefing / first clue / the decoy note / the final ID / the reveal"],
+ "phaseLeads": ["5 one-sentence phase leads the facilitator's screen shows, in-world"],
+ "transmissions": ["3 taunting thief messages (60-90 words each): opening taunt; 'I've moved it — careless readers end up in places that don't exist'; the final squeeze"],
+ "revealBeat": "2-3 sentences resolving the mystery: names trueSuspect and trueLocation; the target is safe",
+ "clue1Title": "Clue 1 — where it was found",
+ "clue1Text": ["a 4-line rhyming riddle whose solution is an attribute that clears EXACTLY the 2 clearedByClue1 suspects and leaves the other 2"],
+ "clue1FacKey": "facilitator answer key: the solution and which two suspects it clears",
+ "clue2Title": "Clue 2 — the thief's note",
+ "clue2Lines": ["4-6 taunting lines; the FIRST LETTERS of the lines must spell a word pointing at trueLocation (acrostic); include a hint like 'one little shift'"],
+ "clue2Cipher": "a Caesar +1 encoding (every letter shifted forward by one, A→B) of 'MEET AT THE <DECOY LOCATION>' in caps",
+ "clue2FacKey": "facilitator key: the surface decode (which names the decoy, NOT on the map) and the acrostic (which points at trueLocation)",
+ "clue3Title": "Clue 3 — motive + means",
+ "clue3Text": ["5-6 lines: an access-log or record fragment proving who could reach trueLocation at dawn, plus a signature flourish only the true thief would leave"],
+ "clue3FacKey": "facilitator key: the solution and what rules out the other surviving suspect",
+ "briefTitles": ["5 short punchy in-world titles for the workboard's brief column, one per phase"],
+ "briefBodies": ["5 one-to-two-sentence in-world briefs, one per phase; phase 3's should note the note decodes cleanly — and that's the worry"]
+}
+
+CRITICAL RULES: decoyLocation must NOT appear in mapLocations (that mismatch IS the lesson). Verify your Caesar cipher letter by letter. Verify the acrostic spells its word. Never name any specific AI product anywhere.`;
+}
+function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30)||("topic-"+Date.now()); }
+function validatePack(o){
+  const req=["sessionLabel","tagline","thief","gameDescriptor","targetName","Target","target","theftScene","deadline","recoveryAward","scenario","mapLocations","suspects","trueSuspect","trueSuspectDescriptor","trueLocation","trueLocationDetail","decoyLocation","roadmap","phaseLeads","transmissions","revealBeat","clue1Title","clue1Text","clue1FacKey","clue2Title","clue2Lines","clue2Cipher","clue2FacKey","clue3Title","clue3Text","clue3FacKey","briefTitles","briefBodies"];
+  const missing=req.filter(k=>o[k]===undefined||o[k]==="");
+  if(missing.length) return "Missing fields: "+missing.join(", ");
+  if(!Array.isArray(o.mapLocations)||o.mapLocations.length<6) return "mapLocations must be an array of ~8 locations.";
+  if(!Array.isArray(o.suspects)||o.suspects.length!==4) return "suspects must be an array of exactly 4.";
+  const cleared=o.suspects.filter(s=>s.clearedByClue1).length, thieves=o.suspects.filter(s=>s.isThief);
+  if(cleared!==2) return "Exactly 2 suspects must have clearedByClue1: true (found "+cleared+").";
+  if(thieves.length!==1) return "Exactly 1 suspect must have isThief: true.";
+  if(thieves[0].clearedByClue1) return "The thief cannot be cleared by Clue 1.";
+  const mapLower=o.mapLocations.map(l=>l.toLowerCase());
+  const decoyCore=o.decoyLocation.toLowerCase().replace(/^the\s+/,"");
+  if(mapLower.some(l=>l.includes(decoyCore)||decoyCore.includes(l))) return "decoyLocation must NOT appear in mapLocations — that mismatch is the whole lesson.";
+  if(!mapLower.some(l=>l===o.trueLocation.toLowerCase())) return "trueLocation must be one of mapLocations.";
+  if(o.roadmap.length!==5||o.phaseLeads.length!==5) return "roadmap and phaseLeads must each have 5 entries.";
+  if(o.transmissions.length!==3) return "transmissions must have 3 entries.";
+  if(!Array.isArray(o.briefTitles)||o.briefTitles.length!==5||!Array.isArray(o.briefBodies)||o.briefBodies.length!==5) return "briefTitles and briefBodies must each have 5 entries.";
+  return null;
+}
+function renderSetup(){
+  return `<div class="setup">
+    <div class="eyebrow">SNHU AI Labs · Challenge · Faculty setup</div>
+    <h1>Add your own topic</h1>
+    <p style="font-size:13.5px;color:var(--muted)">Three steps: describe your class, run the generated prompt in your AI tool of choice, paste the result back. The engine, timing, roles, and rules never change — only the story.</p>
+    <div class="card hero step-card"><h2>Step 1 — Your class</h2>
+      <label>Class / discipline</label><input class="field" value="${esc(FS.discipline)}" oninput="App.fs('discipline',this.value)" placeholder="e.g. Intro to Criminal Justice">
+      <label>Topic focus</label><input class="field" value="${esc(FS.focus)}" oninput="App.fs('focus',this.value)" placeholder="e.g. chain of custody and evidence handling">
+      <label>What should students grapple with?</label><input class="field" value="${esc(FS.grapple)}" oninput="App.fs('grapple',this.value)" placeholder="e.g. verifying confident claims before acting on them">
+      <label>Constraints (optional)</label><input class="field" value="${esc(FS.constraints)}" oninput="App.fs('constraints',this.value)" placeholder="e.g. keep it lighthearted; no crime-scene gore"></div>
+    <div class="card step-card"><h2>Step 2 — Run this prompt in your AI tool</h2>
+      <div class="gen-prompt" id="genPrompt">${esc(packSchemaPrompt())}</div>
+      <div class="copy-row"><button class="btn btn-navy" onclick="App.copySetup(this)">Copy prompt</button></div></div>
+    <div class="card step-card"><h2>Step 3 — Paste the JSON it returns</h2>
+      <textarea class="field" style="min-height:120px" placeholder='Paste the JSON swap pack here…' oninput="App.fs('paste',this.value)">${esc(FS.paste)}</textarea>
+      <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
+        <button class="btn btn-gold" onclick="App.validateSetup()">Validate &amp; save topic</button>
+        ${FS.msg?`<span class="${FS.msg.ok?"ok":"err"}" style="margin:0">${esc(FS.msg.text)}</span>`:""}</div></div>
+    ${Object.keys(CUSTOM).length?`<div class="card step-card"><h2>Saved topics</h2>
+      ${Object.keys(CUSTOM).map(k=>`<div class="saved-topic"><b>${esc(CUSTOM[k].sessionLabel)}</b><span style="color:var(--muted)">(${k})</span>
+        <span style="flex:1"></span><button class="btn btn-line" onclick="App.removeTopic('${k}')">Remove</button></div>`).join("")}</div>`:""}
+    <div class="card step-card"><h2>Facilitator only — the thief prompt</h2>
+      <p style="font-size:13px;color:var(--muted)">The projector stays room-safe, so the villain lives in <em>your</em> AI tool. Copy the prompt for your topic and paste it into your own chat before class. It contains the solution — never show students.</p>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
+        <select id="thiefTopic" style="padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--white)">
+          ${Object.keys(PACKS).map(k=>`<option value="${k}" ${k===S.pack?"selected":""}>${esc(PACKS[k].sessionLabel)}</option>`).join("")}</select>
+        <button class="btn btn-navy" onclick="App.copyThief(this)">Copy thief prompt</button>
+      </div></div>
+    <div style="margin-top:18px"><button class="linkish" style="color:var(--impact-blue)" onclick="App.setMode(null)">← Back to the mode chooser</button></div>
+  </div>`;
+}
+
+/* ---------- app wiring ---------- */
+function render(){
+  const app=document.getElementById("app");
+  app.innerHTML = S.mode==="stage"?renderStage():S.mode==="board"?renderBoard():S.mode==="setup"?renderSetup():renderChooser();
+}
+const App={
+  setMode(m){ S.mode=m; save(); render(); },
+  setPack(k){ S.pack=k; S.phase=0; S.boardPhase=0; S.unlockedUpTo=REQUIRE_WORDS?0:PHASE_META.length-1; S.wordRevealed=false; S.ceiling=false;
+    S.stageT={remaining:phases()[0].mins*60,running:false}; S.boardT={remaining:phases()[0].mins*60,running:false}; save(); render(); },
+  setTiming(t){ S.timing=t;
+    S.stageT.remaining=phases()[S.phase].mins*60; S.stageT.running=false;
+    S.boardT.remaining=phases()[S.boardPhase].mins*60; S.boardT.running=false; save(); render(); },
+  toggleRun(){ const t=S.mode==="stage"?S.stageT:S.boardT; t.running=!t.running; save(); render(); },
+  resetTimer(){ const t=S.mode==="stage"?S.stageT:S.boardT;
+    t.remaining=phases()[S.mode==="stage"?S.phase:S.boardPhase].mins*60; t.running=false; S.ceiling=false; save(); render(); },
+  reveal(){ S.wordRevealed=true; save(); render(); },
+  goPhase(i){ if(i<0||i>=PHASE_META.length) return;
+    S.phase=i; S.wordRevealed=false; S.ceiling=false; S.taunt="";
+    S.stageT={remaining:phases()[i].mins*60,running:false}; broadcast(); save(); render(); },
+  blastTaunt(){ const el=document.getElementById("stTaunt");
+    if(el&&el.value.trim()){ S.taunt=el.value.trim(); save(); render(); } },
+  clearTaunt(){ S.taunt=""; save(); render(); },
+  boardReset(){ if(!confirm("Start fresh? This relocks phases 2–5 and clears this crew's board for the current topic.")) return;
+    S.boardPhase=0; S.unlockedUpTo=REQUIRE_WORDS?0:PHASE_META.length-1; S.roomPhase=0;
+    S.boards[S.pack]=defaultBoard(pack());
+    S.boardT={remaining:phases()[0].mins*60,running:false}; save(); render(); },
+  stageReset(){ if(!confirm("New session? This clears all crews and scores and returns to Phase 1.")) return;
+    S.phase=0; S.wordRevealed=false; S.ceiling=false; S.taunt=""; S.teams=[]; S.selected=0;
+    S.stageT={remaining:phases()[0].mins*60,running:false}; broadcast(); save(); render(); },
+  addTeam(){ if(S.teams.length<8){ S.teams.push({name:"Crew "+(S.teams.length+1),pts:0,rec:false,crown:false}); save(); render(); } },
+  teamName(i,v){ S.teams[i].name=v; save(); },
+  teamPts(i,d){ S.teams[i].pts=Math.max(0,S.teams[i].pts+d); save(); render(); },
+  selCrew(i){ S.selected=i; save(); render(); },
+  award(n){ const a=AWARD_BTNS[n], i=Math.min(S.selected||0,S.teams.length-1), t=S.teams[i];
+    if(!t||!a) return;
+    t.pts+=a.pts;
+    if(a.recovery && !t.rec){ t.crown=!S.teams.some(x=>x.rec); t.rec=true; }
+    save(); render(); },
+  wordIn(v){ wordInput=v; if(wordError){wordError=false; render();} },
+  tryUnlock(){ const next=S.unlockedUpTo+1;
+    if(next>=PHASE_META.length) return;
+    if(wordInput.trim().toUpperCase()===PHASE_META[next].word){
+      S.unlockedUpTo=next; S.boardPhase=next; wordInput=""; wordError=false;
+      S.boardT={remaining:phases()[next].mins*60,running:false}; save(); render();
+    } else { wordError=true; render(); } },
+  boardGo(i){ if(i<=S.unlockedUpTo){ S.boardPhase=i; S.boardT={remaining:phases()[i].mins*60,running:false}; save(); render(); } },
+  susSet(i,v){ board().suspects[i]=v; save(); render(); },
+  lastKnown(v){ board().lastKnown=v; save(); },
+  leadT(i,v){ board().leads[i].t=v; save(); },
+  leadToggle(i){ const l=board().leads[i]; l.src=l.src==="AI"?"Crew":"AI"; save(); render(); },
+  leadAdd(){ board().leads.push({t:"",src:"Crew"}); save(); render(); },
+  subAnswer(v){ const b=board(); b.subs[S.boardPhase]=Object.assign(b.subs[S.boardPhase]||{},{answer:v}); save(); },
+  subSend(){ const b=board(); const s=b.subs[S.boardPhase]=b.subs[S.boardPhase]||{};
+    s.submitted=true; s.lockedAt=fmt(S.boardT.remaining); save(); render(); },
+  refl(i,v){ board().reflections[i]=v; save(); },
+  verify(v){ board().verifyLine=v; save(); },
+  stem(v){ board().stemLine=v; save(); },
+  copyThief(b){ const el=document.getElementById("thiefTopic");
+    const k=el&&PACKS[el.value]?el.value:S.pack;
+    copyText(T(THIEF_PROMPT_TPL,PACKS[k]),b); },
+  copyArtifact(b){ copyText(artifactText(S.boardPhase),b); },
+  copyCase(b){ copyText(caseFileText(),b); },
+  copyPrime(b){ copyText(PRIME_PROMPT,b); },
+  copySetup(b){ copyText(packSchemaPrompt(),b); },
+  fs(k,v){ FS[k]=v; if(k!=="paste"){ const el=document.getElementById("genPrompt"); if(el) el.textContent=packSchemaPrompt(); } },
+  validateSetup(){
+    let raw=FS.paste.trim().replace(/^```(json)?/i,"").replace(/```$/,"").trim();
+    let obj; try{ obj=JSON.parse(raw); }catch(e){ FS.msg={ok:false,text:"That isn't valid JSON — paste exactly what your AI tool returned."}; render(); return; }
+    const err=validatePack(obj);
+    if(err){ FS.msg={ok:false,text:err}; render(); return; }
+    const key=slugify(obj.sessionLabel);
+    CUSTOM[key]=obj; PACKS[key]=obj;
+    try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(CUSTOM)); }catch(e){}
+    FS.msg={ok:true,text:"Saved! “"+obj.sessionLabel+"” is now in the topic selector."}; FS.paste="";
+    render(); },
+  removeTopic(k){ delete CUSTOM[k]; delete PACKS[k];
+    if(S.pack===k) S.pack="penmen";
+    try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(CUSTOM)); }catch(e){} save(); render(); }
+};
+window.App=App;
+if(!REQUIRE_WORDS) S.unlockedUpTo=PHASE_META.length-1;
+render();
+</script>
+</body>
+</html>
